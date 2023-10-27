@@ -100,3 +100,4 @@ RUN apt-get -q -y autoremove && \
 COPY entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
+
