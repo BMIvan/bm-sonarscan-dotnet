@@ -233,5 +233,4 @@ if [ -z "$html_url" ]; then
   exit 1
 fi
 
-echo $html_url
 echo "html_url=$html_url" >> $GITHUB_OUTPUT
