@@ -1,0 +1,94 @@
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# GitHub CLI - https://cli.github.com/manual
+# git tag -a v1.0.0 -m "Version v1.0.0"
+# git push origin --tags
+
+name: Docker Image build
+
+on:
+  # Push
+  push: # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push
+    # branches: [ main ] # Run the workflow when pushing to the main branch
+    tags:
+      - "v*.*.*"
+
+# Concurrency - https://docs.github.com/en/actions/using-jobs/using-concurrency
+concurrency: #  setting up a concurrency strategy - https://exercism.org/docs/building/github/gha-best-practices#h-consider-setting-up-a-concurrency-strategy
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+# Env
+env:
+  Repo_Name: "${{ github.event.repository.name }}"
+  Full_Repo_Name: "${{ github.repository }}"
+  Image_Name: "ghcr.io/${{ github.repository }}"
+  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  GH_PAT_CLASSIC: "${{ secrets.GH_PAT_CLASSIC }}"
+  GH_Username: "${{ github.actor }}"
+  GH_EMAIL: "${{ vars.GH_EMAIL }}"
+  Registry: "ghcr.io"
+
+jobs:
+  build:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      packages: write # Write: Push Docker image
+      contents: write # Read: actions/checkout; Write: Push changes to GitHub
+    steps:
+      - name: Get Job Id
+        id: get_job_id
+        uses: Tiryoh/gha-jobid-action@v1 # https://github.com/Tiryoh/gha-jobid-action
+        with:
+          job_name: build
+          github_token: ${{ env.GITHUB_TOKEN }}
+
+      # To Lower case
+      - name: To Lower case
+        run: |
+          # Environment files - https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+          echo "Full_Repo_Name_lc=${Full_Repo_Name,,}" >> ${GITHUB_ENV}
+          echo "Image_Name_lc=${Image_Name,,}" >> ${GITHUB_ENV}
+          echo "GH_Username_lc=${GH_Username,,}" >> ${GITHUB_ENV}
+
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      #*************************************
+      # Publishing images to GitHub Packages - https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
+      #*************************************
+      
+      # Extract metadata
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5 # https://github.com/docker/metadata-action
+        with:
+          images: ${{ env.Image_Name_lc }}
+
+      # Debug
+      - name: Debug
+        run: |
+          echo "job_id=${{ steps.get_job_id.outputs.job_id }}" >> ${GITHUB_ENV}
+          echo job_id "${{ steps.get_job_id.outputs.job_id }}"
+          echo tags "${{ steps.meta.outputs.tags }}"
+          echo labels "${{ steps.meta.outputs.labels }}"
+
+      # Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3 # https://github.com/docker/login-action
+        with:
+          registry: ${{ env.Registry }}/${{ env.GH_Username_lc }}
+          username: ${{ env.GH_Username_lc }}
+          password: ${{ env.GH_PAT_CLASSIC }}
+
+      # Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5 # https://github.com/docker/build-push-action
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: "${{ steps.meta.outputs.labels }}"
