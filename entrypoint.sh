@@ -7,7 +7,7 @@ set -eu
 #  git update-index --chmod=+x entrypoint.sh
 # 
 # Check permission (it should start with 100755 where 755 are the attributes for an exexutable file):
-#  git update-index --chmod=+x entrypoint.sh
+#  git ls-files -s entrypoint.sh
 
 # Check required parameters has a value
 if [ -z "$INPUT_SONARPROJECTKEY" ]; then
