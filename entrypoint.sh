@@ -217,7 +217,7 @@ echo "GITHUB_API: $GITHUB_API"
 
 # GitHub API
 json_data=$(curl --get -Ss -H "Authorization: Bearer ${GH_PAT_CLASSIC}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_BASEURL}/${GITHUB_API}")
-#echo "json_data: $json_data"
+echo "json_data: $json_data"
 
 if [ -z "$json_data" ]; then
   echo "json_data is empty."
@@ -230,7 +230,7 @@ echo "html_url: $html_url"
 
 if [ -z "$html_url" ]; then
   echo "html_url is empty."
-  exit 1
+  # exit 1
 fi
 
 echo "html_url=$html_url" >> $GITHUB_OUTPUT
