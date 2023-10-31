@@ -5,7 +5,7 @@ set -eu
 # Creating a Docker container action - https://docs.github.com/en/actions/creating-actions/creating-a-docker-container-action
 # Make entrypoint.sh file executable:
 #  git update-index --chmod=+x entrypoint.sh
-# 
+#
 # Check permission (it should start with 100755 where 755 are the attributes for an exexutable file):
 #  git ls-files -s entrypoint.sh
 
@@ -212,6 +212,8 @@ echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
 echo "GITHUB_SHA: $GITHUB_SHA"
 echo "GITHUB_API: $GITHUB_API"
 
+echo "gh_sha=$GITHUB_SHA" >>$GITHUB_OUTPUT
+
 # GitHub CLI - Could not get GitHub login working 'gh auth login'
 # json_data=$(gh api $GITHUB_API)
 
@@ -225,7 +227,7 @@ if [ -z "$json_data" ]; then
 fi
 
 # Find check_runs[].name = "SonarCloud Code Analysis" and get 'html_url' field
-html_url=$(jq -r '.check_runs[] | select(.name == "SonarCloud Code Analysis").html_url' <<< "$json_data")
+html_url=$(jq -r '.check_runs[] | select(.name == "SonarCloud Code Analysis").html_url' <<<"$json_data")
 echo "html_url: $html_url"
 
 if [ -z "$html_url" ]; then
@@ -233,4 +235,4 @@ if [ -z "$html_url" ]; then
   # exit 1
 fi
 
-echo "html_url=$html_url" >> $GITHUB_OUTPUT
+echo "html_url=$html_url" >>$GITHUB_OUTPUT

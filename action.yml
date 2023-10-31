@@ -7,8 +7,8 @@ author: "BMIvan"
 # branding.icon - https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#brandingicon
 # white, yellow, blue, green, orange, red, purple, gray-dark
 branding:
-  icon: 'cloud'
-  color: 'blue'
+  icon: "cloud"
+  color: "blue"
 
 inputs:
   sonarProjectKey: # id of input
@@ -49,8 +49,11 @@ inputs:
     required: false
 
 outputs:
+  gh_sha:
+    description: "GitHub commit SHA"
+
   html_url:
-    description: 'SonarCloud Code Analysis html url'
+    description: "SonarCloud Code Analysis html url"
 
 runs:
   using: "docker"
